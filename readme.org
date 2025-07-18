@@ -15,12 +15,10 @@ Device is another IO module located under IO namespace. It is first contact poin
 IO operation. Each device has one unique IO controller, and responsible for managing it.
 
 * Communication
-** Endpoint
-It is a base class for receiver and transmitter concrete classes. It is constituted on BSD socket communication.
-*** Receiver
-The endpoint that receives data from a transmitter
-*** Transmitter
-The endpoint that transmites data to a receiver
+** Receiver
+The endpoint that receives data from a transmitter over UDP
+** Transmitter
+The endpoint that transmites data to a receiver over UDP
 
 * Scheduling
 ** Task
