@@ -1,0 +1,27 @@
+* Embedded Architecture Reference
+Embedded Architecture Reference (EAR) is a library for IoT project. It is based on task scheduling approach.
+
+* IO Operations
+** Controller
+IO Controller comprises of basic IO functions such as open,, close, read and write. The developer is supposed
+to develop own IO controller such as serial, Ethernet or another one extending Controller class. It is not used
+independently, it should be set to Device as device controller, and the device is owner of the controller. Thus,
+you should use device for IO operation that you want to perform.
+
+** Device
+Device is another IO module located under IO namespace. It is first contact point of developer who wants to perform
+IO operation. Each device has one unique IO controller, and responsible for managing it.
+
+* Communication
+** Message
+** Endpoint
+** Receiver
+** Transmitter
+** Network Manager
+
+* Scheduling
+** Synchronizable
+** Task
+** Scheduler
+
+/Test - ismail - 20/8/2024/
