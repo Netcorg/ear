@@ -1,7 +1,9 @@
 * Embedded Architecture Reference
-Embedded Architecture Reference (EAR) is a library for IoT project. It is based on task scheduling approach.
+Embedded Architecture Reference (EAR) is a library developed for projects that need standard io-device relation, precise scheduling,
+and communication between tasks scheduled. It comprises of three independent modules: io, communication and scheduling. Each module
+can be used as an individual library inside your project.
 
-* IO Operations
+* IO Modules
 ** Controller
 IO Controller comprises of basic IO functions such as open,, close, read and write. The developer is supposed
 to develop own IO controller such as serial, Ethernet or another one extending Controller class. It is not used
@@ -13,15 +15,20 @@ Device is another IO module located under IO namespace. It is first contact poin
 IO operation. Each device has one unique IO controller, and responsible for managing it.
 
 * Communication
-** Message
 ** Endpoint
-** Receiver
-** Transmitter
-** Network Manager
+It is a base class for receiver and transmitter concrete classes. It is constituted on BSD socket communication.
+*** Receiver
+The endpoint that receives data from a transmitter
+*** Transmitter
+The endpoint that transmites data to a receiver
 
 * Scheduling
-** Synchronizable
 ** Task
+It is a base class for all kind of tasks. The tasks are classified to attributes such as periodic and one shot. All tasks are scheduled
+by one or more schedulers.
+*** Periodic Task
+A task that has a period and offset to start
+*** One Shot Task
+A task that has an offset to start only
 ** Scheduler
-
-/Test - ismail - 20/8/2024/
+Scheduler that manages the task included
