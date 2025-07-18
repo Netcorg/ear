@@ -48,5 +48,5 @@ if (BUILD_EAR_SCHED)
 endif()
 
 if (BUILD_EAR_SAMPLE)
-  add_subdirectory(samples)
+  add_subdirectory(sample)
 endif()
