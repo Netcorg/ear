@@ -13,7 +13,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Initialize an empty list for source files
 set(SOURCES)
 
-option(BUILD_EAR_IO "Build EAR I/O library" OFF)
+option(BUILD_EAR_IO "Build EAR I/O library" ON)
 option(BUILD_EAR_COMM "Build EAR Communication library" OFF)
 option(BUILD_EAR_SCHED "Build EAR Scheduling library" ON)
 option(BUILD_EAR_SAMPLES "Build EAR samples" OFF)
@@ -22,17 +22,14 @@ add_subdirectory(externals/spdlog)
 
 if (BUILD_EAR_IO)
   add_subdirectory(src/io)
-  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-io>)
 endif()
 
 if (BUILD_EAR_COMM)
   add_subdirectory(src/comm)
-  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-comm>)
 endif()
 
 if (BUILD_EAR_SCHED)
   add_subdirectory(src/sched)
-  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-sched>)
 endif()
 
 include_directories(

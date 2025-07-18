@@ -1,4 +1,4 @@
-/**
+1/**
  * @file endpoint.h
  * @brief base class that provides communication endpoint
  * Time-stamp: <2025-01-09 22:55:28 boo>
@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <string>
 #include "comm_util.h"
 
 namespace EAR {

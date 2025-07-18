@@ -1,0 +1,1 @@
+- replace or extend network infrastructure with asio to run comm module on windows
