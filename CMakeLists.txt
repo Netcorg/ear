@@ -1,68 +1,54 @@
 cmake_minimum_required(VERSION 3.15)
-project(ear VERSION 1.0.0 DESCRIPTION "embedded architecture reference (EAR) library")
+project(ear
+  VERSION 1.0.0
+  DESCRIPTION "Embedded Architecture Reference (EAR) library"
+  LANGUAGES CXX
+)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(SPDLOG_DIR externals/spdlog)
-set(INCLUDE_DIR include)
-
 # Initialize an empty list for source files
 set(SOURCES)
 
-option(EAR_BUILD_SHARED_LIB "Build shared library for EAR" OFF)
-option(EAR_BUILD_IO "Build EAR I/O library" ON)
-option(EAR_BUILD_COMM "Build EAR Communication library" ON)
-option(EAR_BUILD_SCHED "Build EAR Scheduling library" ON)
-option(EAR_BUILD_SAMPLES "Build EAR samples" ON)
+option(BUILD_EAR_IO "Build EAR I/O library" OFF)
+option(BUILD_EAR_COMM "Build EAR Communication library" OFF)
+option(BUILD_EAR_SCHED "Build EAR Scheduling library" ON)
+option(BUILD_EAR_SAMPLES "Build EAR samples" OFF)
+
+add_subdirectory(externals/spdlog)
+
+if (BUILD_EAR_IO)
+  add_subdirectory(src/io)
+  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-io>)
+endif()
+
+if (BUILD_EAR_COMM)
+  add_subdirectory(src/comm)
+  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-comm>)
+endif()
+
+if (BUILD_EAR_SCHED)
+  add_subdirectory(src/sched)
+  #list(APPEND SOURCES $<TARGET_OBJECTS:ear-sched>)
+endif()
 
 include_directories(
-  ${SPDLOG_DIR}/include
+  include
+  externals/spdlog/include
 )
 
-if (EAR_BUILD_IO)
-  add_subdirectory(src/io)
-  list(APPEND SOURCES $<TARGET_OBJECTS:ear-io>)
-endif(EAR_BUILD_IO)
-
-if (EAR_BUILD_COMM)
-  add_subdirectory(src/comm)
-  list(APPEND SOURCES $<TARGET_OBJECTS:ear-comm>)
-endif (EAR_BUILD_COMM)
-
-if (EAR_BUILD_SCHED)
-  add_subdirectory(src/sched)
-  list(APPEND SOURCES $<TARGET_OBJECTS:ear-sched>)
-endif (EAR_BUILD_SCHED)
-
-if (EAR_BUILD_SHARED_LIB)
-  add_library(${PROJECT_NAME} SHARED ${SOURCES})
-else ()
-  add_library(${PROJECT_NAME} STATIC ${SOURCES})
-endif(EAR_BUILD_SHARED_LIB)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  VERSION ${PROJECT_VERSION}
-  SOVERSION 1
+link_directories(
+  externals/spdlog
 )
 
-add_subdirectory(${SPDLOG_DIR} ${SPDLOG_DIR}/build)
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-  ${INCLUDE_DIR}
-)
-
-target_link_directories(${PROJECT_NAME} PRIVATE
-  ${SPDLOG_DIR}/build
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
+link_libraries(
   spdlog
 )
 
-if (EAR_BUILD_SAMPLES)
+if (BUILD_EAR_SAMPLES)
   add_subdirectory(samples/pipeline)
   add_subdirectory(samples/network)
-endif (EAR_BUILD_SAMPLES)
+endif()
