@@ -22,6 +22,7 @@ int main() {
   // set controllers of devices
   gps_dev1.setController(&serial_controller1);
   gps_dev2.setController(&serial_controller2);
+  
   // set devices of services
   location_service1.setDevice(&gps_dev1);
   location_service2.setDevice(&gps_dev2);

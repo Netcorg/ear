@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 project(pipeline-test)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(SOURCES
   src/dcu_service.cpp
   src/radar_service.cpp
@@ -16,18 +12,13 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+target_include_directories(${PROJECT_NAME} PUBLIC
   include
-  ../../include
-  ../../externals/spdlog/include
 )
 
-target_link_directories(${PROJECT_NAME} PRIVATE
-  ../../
-  ../../externals/spdlog/build
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME} PUBLIC
   spdlog
-  ear
+  ear-io
+  ear-comm
+  ear-sched
 )

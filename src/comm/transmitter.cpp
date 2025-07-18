@@ -1,86 +1,82 @@
-#include <cstdlib>
-#include <string>
-#include <unistd.h>
 #include "comm/transmitter.h"
 #include "spdlog/spdlog.h"
 
-EAR::Communication::Transmitter::Transmitter(void)
-  : Endpoint()
-{
+EAR::Communication::Transmitter::Transmitter(void) {
+  // set default name
+  m_name = "transmitter endpoint";
 }
 
-EAR::Communication::Transmitter::Transmitter(const std::string &name)
-  : Endpoint(name)
-{
+EAR::Communication::Transmitter::Transmitter(const std::string &name) {
+  m_name = name;
 }
 
 EAR::Communication::Transmitter::~Transmitter() {
+  if (nullptr != m_socket) {
+    delete m_socket;
+    m_socket = nullptr;
+  }
 }
 
-bool EAR::Communication::Transmitter::initialize(const Configuration &config) {
-  if (COMM_OPENED == m_state) {
-    spdlog::error("socket for transmitter {} already opened", getName());
+void EAR::Communication::Transmitter::setName(const std::string &name) {
+  m_name = name;
+  return;
+}
+
+const std::string &EAR::Communication::Transmitter::getName(void) const {
+  return m_name;
+}
+
+bool EAR::Communication::Transmitter::initialize(const std::string &remote_ip, const uint16_t remote_port) {
+  if (remote_ip.empty() || 0U == remote_port) {
+    spdlog::error("invalid ip {} and/or port {} configuration for {}", remote_ip, remote_port, m_name);
     return false;
   }
 
-  memset(&m_remote_addr, 0, sizeof(m_remote_addr));
-
-  if (config.ip.empty()) {
-    m_remote_addr.sin_addr.s_addr = INADDR_ANY;
-  }
-  else {
-    if (!isValidAddress(config.ip)) {
-      spdlog::error("invalid IP format for transmitter {}", getName());
-      return false;
-    }
-
-    m_remote_addr.sin_addr.s_addr = inet_addr(config.ip.c_str());
-  }
-
-  if (0 == config.port) {
-    spdlog::error("invalid port number for transmitter {}", getName());
+  if (nullptr != m_socket) {
+    spdlog::error("could not open socket that was already opened for {}", m_name);
     return false;
   }
-
-  m_remote_addr.sin_port = htons(config.port);
-  m_remote_addr.sin_family = AF_INET;
-
-  if (0 > (m_sock = socket(AF_INET, SOCK_DGRAM, 0))) {
-    spdlog::error("could not create socket for transmitter {}", getName());
+  
+  try {
+    m_socket = new asio::ip::udp::socket(m_context);
+    m_remote_endpoint.address(asio::ip::make_address(remote_ip));
+    m_remote_endpoint.port(remote_port);
+    m_socket->open(asio::ip::udp::v4());
+  }
+  catch (asio::system_error &ex) {
+    spdlog::error("could not initialize {}, error is {}", m_name, ex.what());
     return false;
   }
-
-  m_state = COMM_OPENED;
   
   return true;
 }
 
-void EAR::Communication::Transmitter::shutdown(void) {
-  struct sockaddr_in local_addr;
-  socklen_t addr_len = sizeof(local_addr);
-  char local_ip[16];
-
-  if (0 == getsockname(m_sock, (struct sockaddr *) &local_addr, &addr_len)) {
-    inet_ntop(AF_INET, &local_addr.sin_addr, local_ip, sizeof(local_ip));    
+bool EAR::Communication::Transmitter::shutdown(void) {
+  if (nullptr == m_socket) {
+    spdlog::error("could not close socket that is not opened yet for {}", m_name);
+    return false;
   }
 
-  ::shutdown(m_sock, SHUT_WR);
-  m_state = COMM_CLOSED;
-    
-  return;
+  m_socket->close();
+  return true;
 }
 
-int32_t EAR::Communication::Transmitter::send(const std::string &buf) {
-  return send(buf.c_str(), buf.length());
-}
-
-int32_t EAR::Communication::Transmitter::send(const void *buf, size_t size) {
-  if (COMM_OPENED != m_state) {
-    spdlog::error("could not send data, connection closed for transmitter {}", getName());
-    return ENOENT;
+bool EAR::Communication::Transmitter::transmit(const uint8_t *buf, int32_t &size) {
+  if (nullptr == m_socket) {
+    spdlog::error("could not transmit data over socket that is not opened yet for {}", m_name);
+    return false;
+  }
+  
+  try {
+    if (size != m_socket->send_to(asio::buffer(buf, size), m_remote_endpoint)) {
+      spdlog::error("could not transmit all bytes to opposite side for {}", m_name);
+      return false;
+    }
+  }
+  catch (asio::system_error &ex) {
+    spdlog::error("could not transmit data for {}, error is {}", m_name, ex.what());
+    return false;
   }
 
-  return sendto(m_sock, buf, size, 0,
-		(struct sockaddr *) &m_remote_addr,
-		sizeof(m_remote_addr));
+  return true;
 }

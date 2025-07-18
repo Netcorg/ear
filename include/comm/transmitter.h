@@ -6,13 +6,13 @@
 
 #pragma once
 
-#include <arpa/inet.h>
-#include "endpoint.h"
+#include <cstdint>
+#include "asio.hpp"
 
 namespace EAR {
   namespace Communication {
     /// transmitter endpoint class
-    class Transmitter : public Endpoint {	    
+    class Transmitter {	    
     public:
       /// default constructor
       Transmitter(void);      
@@ -21,28 +21,35 @@ namespace EAR {
       Transmitter(const std::string &name);      
       /// destructor
       virtual ~Transmitter();
+      /// function that sets transmitter endpoint name
+      /// @param [in] name - endpoint name
+      void setName(const std::string &name);
+      /// function that gets transmitter endpoint name
+      /// @return endpoint name
+      const std::string &getName(void) const;
       /// function that initializes transmitter endpoint
-      /// @param [in] config - endpoint configuration
-      /// @return true if endpoint is initialized, otherwise false
-      virtual bool initialize(const Configuration &config) override;
+      /// @param [in] remote_ip - ip address that is used to transmit data to destination
+      /// @param [in] remote_port - port number that is used to transmit data to destination
+      /// @return true if transmitter endpoint is initialized successfully, otherwise false     
+      bool initialize(const std::string &remote_ip, const uint16_t remote_port);
       /// function that shutdowns transmitter endpoint
-      virtual void shutdown(void) override;    
-      /// function that send buffer to listener
-      /// @remark it is for message whose content is well-known type, character stream 
+      /// @return true if transmitter endpoint is shut down successfully, otherwise false
+      bool shutdown(void);    
+      /// function that trasnmits buffer to receiver(s)
       /// @param [in] buf - buffer
-      /// @return length of data sent if sending is done successfully, otherwise errno
-      int32_t send(const std::string &buf);	    
-      /// function that send buffer to listener
-      /// @param [in] buf - buffer
-      /// @param [in] size - buffer size
-      /// @return length of data sent if succeed, otherwise errno
-      int32_t send(const void *buf, size_t size);
+      /// @param [in|out] size - buffer size
+      /// @return true if transmission is done successfully, otherwise false
+      bool transmit(const uint8_t *buf, int32_t &size);
 
     private:
-      /// socket
-      int m_sock = -1;
-      /// receiver address
-      struct sockaddr_in m_remote_addr;
+      /// receiver endpoint name
+      std::string m_name;
+      /// io context for socket
+      asio::io_context m_context;
+      /// udp socket
+      asio::ip::udp::socket *m_socket = nullptr;
+      /// remote endpoint configuration
+      asio::ip::udp::endpoint m_remote_endpoint;
     };
   }
 }

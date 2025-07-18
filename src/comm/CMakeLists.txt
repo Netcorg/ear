@@ -7,7 +7,6 @@ project(ear-comm
 )
 
 set(SOURCES
-  endpoint.cpp
   receiver.cpp
   transmitter.cpp
 )

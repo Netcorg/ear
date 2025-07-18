@@ -10,15 +10,30 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Initialize an empty list for source files
-set(SOURCES)
-
 option(BUILD_EAR_IO "Build EAR I/O library" ON)
-option(BUILD_EAR_COMM "Build EAR Communication library" OFF)
+option(BUILD_EAR_COMM "Build EAR Communication library" ON)
 option(BUILD_EAR_SCHED "Build EAR Scheduling library" ON)
-option(BUILD_EAR_SAMPLES "Build EAR samples" OFF)
+option(BUILD_EAR_SAMPLES "Build EAR samples" ON)
+
+if (WIN32)
+  add_definitions(-D_WIN32_WINNT=0x0A00)
+endif()
 
 add_subdirectory(externals/spdlog)
+
+include_directories(
+  include
+  externals/spdlog/include
+  externals/asio/asio/include
+)
+
+link_directories(
+  externals/spdlog
+)
+
+link_libraries(
+  spdlog
+)
 
 if (BUILD_EAR_IO)
   add_subdirectory(src/io)
@@ -32,20 +47,7 @@ if (BUILD_EAR_SCHED)
   add_subdirectory(src/sched)
 endif()
 
-include_directories(
-  include
-  externals/spdlog/include
-)
-
-link_directories(
-  externals/spdlog
-)
-
-link_libraries(
-  spdlog
-)
-
 if (BUILD_EAR_SAMPLES)
   add_subdirectory(samples/pipeline)
-  add_subdirectory(samples/network)
+#  add_subdirectory(samples/network)
 endif()

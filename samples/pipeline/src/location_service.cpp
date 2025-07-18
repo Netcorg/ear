@@ -17,13 +17,12 @@ void LocationService::setDevice(EAR::IO::Device *dev) {
 
 bool LocationService::initialize(void) {
   spdlog::info("Location Service task {} initialized", getName());
-  
-  return true;
+  return m_endpoint.initialize("127.0.0.1", 5000);
 }
 
 void LocationService::cycle(void) {
-  const uint16_t size = 8U;
-  uint8_t data[size];
+  int32_t size = 8U;
+  uint8_t data[8];
 	
   if (nullptr != m_dev) {
     if (0 < m_dev->receive(data, size)) {
@@ -32,6 +31,13 @@ void LocationService::cycle(void) {
     else {
       spdlog::warn("Location Service task {} read failed", getName());
     }
+  }
+
+  if (m_endpoint.transmit(data, size)) {
+    spdlog::info("location service transmits data to dcu service");
+  }
+  else {
+    spdlog::error("location service could not transmit data to dcu service");
   }
     
   return;

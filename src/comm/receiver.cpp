@@ -1,103 +1,95 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <fcntl.h>
+#include <array>
 #include "comm/receiver.h"
 #include "spdlog/spdlog.h"
 
-EAR::Communication::Receiver::Receiver(void)
-  : Endpoint()
-{
-  m_local_addr_len = sizeof(m_local_addr);
+EAR::Communication::Receiver::Receiver(void) {
+  // set default name
+  m_name = "receiver endpoint";
 }
 
-EAR::Communication::Receiver::Receiver(const std::string &name)
-  : Endpoint(name)
-{
-  m_local_addr_len = sizeof(m_local_addr);
+EAR::Communication::Receiver::Receiver(const std::string &name) {
+  m_name = name;
 }
 
 EAR::Communication::Receiver::~Receiver() {
+  if (nullptr != m_socket) {
+    delete m_socket;
+    m_socket = nullptr;
+  }
 }
 
-bool EAR::Communication::Receiver::initialize(const Configuration &config) {
-  if (COMM_OPENED == m_state) {
-    spdlog::error("socket for receiver already opened");
-    return false;
-  }
-    
-  struct sockaddr_in server_addr;
-
-  memset(&server_addr, 0, sizeof(server_addr));
-
-  if (config.ip.empty()) {
-    server_addr.sin_addr.s_addr = INADDR_ANY;
-  }
-  else {
-    if (!isValidAddress(config.ip)) {
-      spdlog::error("invalid IP format for receiver {}", getName());
-      return false;
-    }
-
-    server_addr.sin_addr.s_addr = inet_addr(config.ip.c_str());
-  }
-
-  if (0 == config.port) {
-    spdlog::error("invalid port number for receiver {}", getName());
-    return false;
-  }
-
-  server_addr.sin_port = htons(config.port);
-  server_addr.sin_family = AF_INET;
-    
-  if (0 > (m_sock = socket(AF_INET, SOCK_DGRAM, 0))) {
-    spdlog::error("could not create socket for receiver {}", getName());
-    return false;
-  }
-    
-  if (0 > bind(m_sock, (const struct sockaddr *) &server_addr, sizeof(server_addr))) {
-    spdlog::error("could not bind socket for receiver {}", getName());
-    return false;
-  }
-
-  if (config.is_blocked && 0 != config.timeout) {
-    struct timeval recv_timeout = {config.timeout / 1000, config.timeout * 1000};
-
-    if (0 != setsockopt(m_sock, SOL_SOCKET, SO_RCVTIMEO, &recv_timeout, sizeof(recv_timeout))) {
-      spdlog::error("could not set timeout option of socket for receiver {}", getName());
-      shutdown();
-
-      return false;
-    }
-  }
-  else {
-    if(fcntl(m_sock, F_SETFL, fcntl(m_sock, F_GETFL) | O_NONBLOCK) < 0) {
-      spdlog::error("could not set non-blocking option of socket for receiver {}", getName());
-      shutdown();
-	    
-      return false;
-    }
-  }
-    
-  m_state = COMM_OPENED;
-    
-  return true;
-}
-
-void EAR::Communication::Receiver::shutdown(void) {
-  ::shutdown(m_sock, SHUT_RD);
-  m_state = COMM_CLOSED;
-
+void EAR::Communication::Receiver::setName(const std::string &name) {
+  m_name = name;
   return;
 }
 
-int32_t EAR::Communication::Receiver::receive(void *buf, size_t size) {
-  if (COMM_OPENED != m_state) {
-    spdlog::error("could not receive data, connection closed for receiver {}", getName());
-    return ENOENT;
+const std::string &EAR::Communication::Receiver::getName(void) const {
+  return m_name;
+}
+
+
+bool EAR::Communication::Receiver::initialize(const uint16_t local_port, bool is_nonblocking) {
+  if (0U == local_port) {
+    spdlog::error("invalid local port value {} for {}", local_port, m_name);
+    return false;
   }
 
-  return recvfrom(m_sock, buf, size, 0,
-		  (struct sockaddr *) &m_local_addr,
-		  &m_local_addr_len);
+  if (nullptr != m_socket) {
+    spdlog::error("could not open socket that was already opened for {}", m_name);
+    return false;
+  }
+  
+  try {
+    asio::ip::udp::endpoint local_endpoint(asio::ip::udp::v4(), local_port);
+    
+    m_socket = new asio::ip::udp::socket(m_context);
+    m_socket->open(asio::ip::udp::v4());
+    m_socket->non_blocking(is_nonblocking);
+    m_socket->bind(local_endpoint);
+  }
+  catch (asio::system_error &ex) {
+    spdlog::error("could not initialize {}, error is {}", m_name, ex.what());
+    return false;
+  }
+  
+  return true;
+}
+
+bool EAR::Communication::Receiver::shutdown(void) {
+  if (nullptr == m_socket) {
+    spdlog::error("could not close socket that is not opened yet for {}", m_name);
+    return false;
+  }
+
+  m_socket->close();
+  return true;
+}
+
+bool EAR::Communication::Receiver::receive(uint8_t *buf, int32_t &size) {
+  if (nullptr == m_socket) {
+    spdlog::error("could not receive data over socket that is not opened yet for {}", m_name);
+    return false;
+  }
+
+  if (nullptr == buf || 0U >= size || MAX_RECV_SIZE < size) {
+    spdlog::error("could not receive data to invalid memory for {}", m_name);
+    return false;
+  }
+  
+  try {
+    std::array<uint8_t, MAX_RECV_SIZE> temp_buf;
+    
+    size = m_socket->receive(asio::buffer(temp_buf));    
+    memcpy(buf, temp_buf.data(), size);
+  }
+  catch (asio::system_error &ex) {
+    // we do not care about the would_block error, because it is expected
+    if (asio::error::would_block != ex.code()) {      
+      spdlog::debug("could not receive data for {}, error is {}", m_name, ex.what());
+    }
+    
+    return false;
+  }
+  
+  return true;
 }
