@@ -21,7 +21,6 @@ if (WIN32)
 endif()
 
 add_subdirectory(externals/spdlog)
-add_subdirectory(externals/rapidjson)
 
 include_directories(
   include
@@ -32,12 +31,10 @@ include_directories(
 
 link_directories(
   externals/spdlog
-  externals/rapidjson
 )
 
 link_libraries(
   spdlog
-  RapidJSON
 )
 
 if (BUILD_EAR_IO)

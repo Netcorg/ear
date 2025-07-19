@@ -37,19 +37,15 @@ bool EAR::Utility::PreferenceManager::load(const std::string &file_path) {
   for (rapidjson::Value::ConstMemberIterator it = document.MemberBegin(); document.MemberEnd() != it; ++it) {
     if (it->value.IsString()) {
       m_string_values.insert({it->name.GetString(), document[it->name.GetString()].GetString()});
-      spdlog::debug("String value: {}", it->value.GetString());
     }
     else if (it->value.IsInt()) {
       m_decimal_values.insert({it->name.GetString(), document[it->name.GetString()].GetInt()});
-      spdlog::debug("Int value: {}", it->value.GetInt());
     }
     else if (it->value.IsInt()) {
       m_float_values.insert({it->name.GetString(), document[it->name.GetString()].GetFloat()});
-      spdlog::debug("Float value: {}", it->value.GetFloat());
     }
     else if (it->value.IsBool()) {
       m_boolean_values.insert({it->name.GetString(), document[it->name.GetString()].GetBool()});
-      spdlog::debug("Bool value: {}", it->value.GetBool());
     }
     else {
       spdlog::error("could not parse json successfully");
