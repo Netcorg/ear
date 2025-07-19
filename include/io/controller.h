@@ -1,7 +1,7 @@
 /**
  * @file controller.h
  * @brief class that representing I/O controller
- * Time-stamp: <2025-01-09 22:54:21 boo>
+ * @author boo
  */
 
 #pragma once

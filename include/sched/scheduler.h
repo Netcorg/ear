@@ -1,7 +1,7 @@
 /**
  * @file scheduler.h
  * @brief task scheduler class that allocates memory for tasks, starts and stops them
- * Time-stamp: <2025-02-19 23:22:10 boo>
+ * @author boo
  */
 
 #pragma once

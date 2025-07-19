@@ -1,4 +1,6 @@
+#include <string>
 #include "sched/scheduler.h"
+#include "util/preference_manager.h"
 #include "dcu_service.h"
 #include "radar_service.h"
 #include "location_service.h"
@@ -6,14 +8,41 @@
 #include "serial_controller.h"
 #include "spdlog/spdlog.h"
 
-int main() {
+int main(int argc, char **argv) {
+  if (2 != argc) {
+    spdlog::error("./pipeline-test <config json path>");
+    return -1;
+  }
+
+  std::string path(argv[1]);
+
   spdlog::set_level(spdlog::level::debug);
+  spdlog::debug("json file path: {}", path);
+  
+  if (!EAR::Utility::PreferenceManager::load(path)) {
+    spdlog::error("could not load configuration json file");
+    return -1;
+  }
+
+  std::string location_service_1_name;
+  std::string location_service_2_name;
+  int32_t location_service_1_period;
+  int32_t location_service_2_period;
+  int32_t location_service_1_offset;
+  int32_t location_service_2_offset;
+  
+  EAR::Utility::PreferenceManager::get("location_service_1_name", location_service_1_name);
+  EAR::Utility::PreferenceManager::get("location_service_2_name", location_service_2_name);
+  EAR::Utility::PreferenceManager::get("location_service_1_period", location_service_1_period);
+  EAR::Utility::PreferenceManager::get("location_service_2_period", location_service_2_period);
+  EAR::Utility::PreferenceManager::get("location_service_1_offset", location_service_1_offset);
+  EAR::Utility::PreferenceManager::get("location_service_2_offset", location_service_2_offset);
   
   EAR::Schedule::Scheduler scheduler("pipeline");
   DCUService dcu_service("dcu-service");
   RadarService radar_service("radar-service");
-  LocationService location_service1("location-service 1");
-  LocationService location_service2("location-service 2");
+  LocationService location_service1(location_service_1_name);
+  LocationService location_service2(location_service_2_name);
   GPSDevice gps_dev1("gps-device 1", "1", "1.0.0");
   GPSDevice gps_dev2("gps-device 2", "2", "1.0.0");
   SerialController serial_controller1("ser-ctrl 1");
@@ -29,8 +58,8 @@ int main() {
 
   scheduler.setType(EAR::Schedule::ST_DETACHED);
   
-  if (!scheduler.add(&location_service1, 1000000U, 0U) ||
-      !scheduler.add(&location_service2, 1000000U, 0U) ||
+  if (!scheduler.add(&location_service1, location_service_1_period, location_service_1_offset) ||
+      !scheduler.add(&location_service2, location_service_2_period, location_service_2_offset) ||
       !scheduler.add(&radar_service, 5000000U) ||
       !scheduler.add(&dcu_service, 3000000U, 3000000U))
     {

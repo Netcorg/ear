@@ -21,4 +21,5 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
   ear-io
   ear-comm
   ear-sched
+  ear-util
 )

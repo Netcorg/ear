@@ -1,7 +1,7 @@
 /**
  * @file periodic_task.h
  * @brief periodic task class that extends synchronizable interface
- * Time-stamp: <2025-02-19 21:44:08 boo>
+ * @author boo
  */
 
 #pragma once

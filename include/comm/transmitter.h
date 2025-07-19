@@ -1,7 +1,7 @@
 /**
  * @file transmitter.h
  * @brief class that provides transmitting infrastructure for message transfer
- * Time-stamp: <2024-11-02 23:56:29 boo>
+ * @author boo
  */
 
 #pragma once

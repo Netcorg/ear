@@ -1,0 +1,8 @@
+{
+    "location_service_1_name": "location-service-1",
+    "location_service_2_name": "location-service-2",
+    "location_service_1_period": 1000000,
+    "location_service_2_period": 1000000,
+    "location_service_1_offset": 0,
+    "location_service_2_offset": 0
+}

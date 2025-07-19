@@ -1,7 +1,7 @@
 /**
  * @file one_shot_task.h
  * @brief one shot task class that extends asynchronizable interface
- * Time-stamp: <2025-02-19 21:44:08 boo>
+ * @author boo
  */
 
 #pragma once

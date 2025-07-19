@@ -1,8 +1,8 @@
 /**
  * @file task.h
  * @brief base task class that extends synchronizable interface
+ * @author boo
  * @todo check usage of joinable function of thread to replace with m_is_running
- * Time-stamp: <2025-07-05 15:19:01 boo>
  */
 
 #pragma once

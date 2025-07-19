@@ -1,7 +1,7 @@
 /**
  * @file device.h
  * @brief class that representing device
- * Time-stamp: <2025-01-11 22:34:57 boo>
+ * @author boo
  */
 
 #pragma once

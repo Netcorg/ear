@@ -13,6 +13,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 option(BUILD_EAR_IO "Build EAR io library" ON)
 option(BUILD_EAR_COMM "Build EAR communication library" ON)
 option(BUILD_EAR_SCHED "Build EAR scheduling library" ON)
+option(BUILD_EAR_UTIL "Build EAR utility library" ON)
 option(BUILD_EAR_SAMPLE "Build sample based on EAR" ON)
 
 if (WIN32)
@@ -20,19 +21,23 @@ if (WIN32)
 endif()
 
 add_subdirectory(externals/spdlog)
+add_subdirectory(externals/rapidjson)
 
 include_directories(
   include
   externals/spdlog/include
   externals/asio/asio/include
+  externals/rapidjson/include
 )
 
 link_directories(
   externals/spdlog
+  externals/rapidjson
 )
 
 link_libraries(
   spdlog
+  RapidJSON
 )
 
 if (BUILD_EAR_IO)
@@ -45,6 +50,10 @@ endif()
 
 if (BUILD_EAR_SCHED)
   add_subdirectory(src/sched)
+endif()
+
+if (BUILD_EAR_UTIL)
+  add_subdirectory(src/util)
 endif()
 
 if (BUILD_EAR_SAMPLE)
